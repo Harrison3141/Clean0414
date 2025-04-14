@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>清潔登記系統</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f9f9f9" />
+  <link rel="apple-touch-icon" href="icon.png">
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 20px;
+      background-color: #f9f9f9;
+      max-width: 480px;
+      margin: auto;
+    }
+    input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .complete {
+      color: green;
+      font-size: 15px;
+    }
+    .incomplete {
+      color: red;
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 1em;
+    }
+    .remove-button {
+      float: right;
+      color: red;
+      border: none;
+      background: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>✅ 清潔登記系統</h1>
+  <label for="idInput">請輸入座號：</label>
+  <input type="number" id="idInput" placeholder="例如：8" />
+
+  <label for="statusSelect">登記狀態：</label>
+  <select id="statusSelect">
+    <option value="normal">完成</option>
+    <option value="病假">病假</option>
+    <option value="事假">事假</option>
+    <option value="公假">公假</option>
+  </select>
+
+  <button onclick="register()">✉️ 登記</button>
+
+  <h2>❌ 尚未登記名單：</h2>
+  <ul id="uncompletedList" class="incomplete"></ul>
+
+  <h2>✅ 已完成名單：</h2>
+  <ul id="completedList" class="complete"></ul>
+
+  <button onclick="downloadCSV()">⬇️ 下載報表 (summary.csv)</button>
+
+  <script>
+    const students = [
+      { id: 20, name: "張正德", work: "黑板", time: "", status: "" },
+      { id: 8, name: "辛享潤", work: "講桌、電腦桌、公桌、板擦機", time: "", status: "" },
+      { id: 34, name: "鄧又嘉", work: "水桶*2、講台掃拖", time: "", status: "" },
+      { id: 1, name: "王品堯", work: "教室1-2排掃拖", time: "", status: "" },
+      { id: 17, name: "洪裕盛", work: "教室3-4排掃拖", time: "", status: "" },
+      { id: 19, name: "康祐愷", work: "教室5-6排掃拖", time: "", status: "" },
+      { id: 28, name: "陳品元", work: "教室7排掃拖", time: "", status: "" },
+      { id: 37, name: "蘇宣睿", work: "走廊掃拖前", time: "", status: "" },
+      { id: 16, name: "施致匡", work: "走廊掃拖後", time: "", status: "" },
+      { id: 7, name: "李馥豪", work: "公佈欄、蒸飯箱、傘架、垃圾桶櫃", time: "", status: "" },
+      { id: 26, name: "陳宏軒", work: "置物櫃、掃具櫃、整理外掃用具", time: "", status: "" },
+      { id: 29, name: "陳柏睿", work: "走廊窗戶前+前門", time: "", status: "" },
+      { id: 27, name: "陳昀昇", work: "走廊窗戶中", time: "", status: "" },
+      { id: 33, name: "廖澤諭", work: "走廊窗戶後+後門", time: "", status: "" },
+      { id: 6, name: "李昊哲", work: "圍牆窗戶前+窗簾", time: "", status: "" },
+      { id: 25, name: "陳仕勛", work: "圍牆窗戶中+窗簾", time: "", status: "" },
+      { id: 31, name: "彭稟淵", work: "圍牆窗戶後+窗簾", time: "", status: "" },
+      { id: 24, name: "連得荃", work: "早班：黑板、講桌、電腦桌、公桌、蒸飯箱", time: "", status: "" },
+      { id: 13, name: "林煜鈞", work: "早班：掃教室、走廊垃圾", time: "", status: "" }
+    ];
+
+    function getCurrentTime() {
+      const now = new Date();
+      return now.toLocaleString();
+    }
+
+    function register() {
+      const id = parseInt(document.getElementById("idInput").value);
+      const status = document.getElementById("statusSelect").value;
+      const student = students.find(s => s.id === id);
+      if (student) {
+        student.status = status === "normal" ? "完成" : status;
+        student.time = getCurrentTime();
+        alert(`已登記：${student.name} (${student.work}) 為 ${student.status}`);
+        updateLists();
+      } else {
+        alert("查無此座號");
+      }
+    }
+
+    function removeEntry(id) {
+      const student = students.find(s => s.id === id);
+      if (student) {
+        student.status = "";
+        student.time = "";
+        updateLists();
+      }
+    }
+
+    function updateLists() {
+      const uncompleted = document.getElementById("uncompletedList");
+      const completed = document.getElementById("completedList");
+      uncompleted.innerHTML = "";
+      completed.innerHTML = "";
+
+      students.forEach(s => {
+        const li = document.createElement("li");
+        if (s.status) {
+          li.innerHTML = `座號：${s.id.toString().padStart(2, '0')} 姓名：${s.name}<br>
+            🧹 工作：${s.work}<br>
+            📌 狀態：${s.status}<br>
+            🕒 登記時間：${s.time}`;
+          const removeBtn = document.createElement("button");
+          removeBtn.textContent = "✖";
+          removeBtn.className = "remove-button";
+          removeBtn.onclick = () => removeEntry(s.id);
+          li.appendChild(removeBtn);
+          completed.appendChild(li);
+        } else {
+          li.textContent = `座號：${s.id.toString().padStart(2, '0')} 姓名：${s.name}`;
+          uncompleted.appendChild(li);
+        }
+      });
+    }
+
+    function downloadCSV() {
+      let csv = "座號,姓名,完成狀態\n";
+      students.forEach(s => {
+        csv += `${s.id},${s.name},${s.status || "0"}\n`;
+      });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `summary_${new Date().toISOString().replace(/[:.]/g, "-")}.csv`;
+      link.click();
+    }
+
+    updateLists();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log("✅ PWA 註冊成功", reg.scope))
+        .catch(err => console.log("❌ PWA 註冊失敗", err));
+    }
+  </script>
+</body>
+</html>
